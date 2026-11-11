@@ -132,7 +132,7 @@ Machine-checkable. ALL must hold:
 - [ ] `pnpm typecheck` exits 0
 - [ ] `pnpm test` exits 0; new tests for <X> exist and pass
 - [ ] `grep -rn "<old pattern>" src/` returns no matches
-- [ ] No files outside the in-scope list are modified (`git status`)
+- [ ] No files outside the in-scope list are modified — committed changes: `git diff --name-only <execution-base> HEAD` (the worktree's starting commit, recorded when execution began); uncommitted leftovers: `git status`
 - [ ] `plans/README.md` status row updated
 
 ## STOP conditions

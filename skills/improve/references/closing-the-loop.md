@@ -27,6 +27,8 @@ The subagent prompt must contain:
 > step. Run every verification command and confirm the expected result before
 > moving on. Touch only the files listed as in scope. If any STOP condition
 > occurs, stop immediately and report. Do not improvise around obstacles.
+> Before doing anything else, run `git rev-parse HEAD` in the worktree and
+> note the SHA — it is your starting commit; report it as STARTED AT below.
 > Commit your work in the worktree following the plan's git workflow section.
 > One override: SKIP the plan's instruction to update `plans/README.md` —
 > your reviewer maintains the index. Before reporting, audit every claim in
@@ -39,6 +41,7 @@ The subagent prompt must contain:
 
 ```
 STATUS: COMPLETE | STOPPED
+STARTED AT: <full SHA from `git rev-parse HEAD`, run before any other step>
 STEPS: per step — done/skipped + verification command result
 STOPPED BECAUSE: (only if STOPPED) which STOP condition, what was observed
 FILES CHANGED: list
@@ -52,8 +55,11 @@ Note on fresh worktrees: they share git history but not `node_modules` or build 
 Review like a tech lead reviewing a PR against the spec — never fix anything yourself:
 
 1. **Re-run every done criterion** in the worktree. Don't trust the executor's report — verify.
-2. **Scope compliance**: `git -C <worktree> diff --stat` against the plan's in-scope list. Any file outside scope fails review, full stop.
-3. **Read the full diff.** Judge it against "Why this matters" (does it solve the actual problem?) and the repo conventions named in the plan (does it look like the rest of the codebase?).
+2. **Scope compliance** — check committed work AND leftovers. A bare `git diff` only shows unstaged changes, so a committed out-of-scope file is invisible on a clean worktree:
+   - Verify the executor's work descends from its starting commit: `git -C <worktree> merge-base --is-ancestor <execution-base> HEAD`, using the STARTED AT SHA from the executor's report. If it fails, BLOCK — the worktree was reset or rebased and the diff can't be trusted.
+   - Committed scope: `git -C <worktree> diff --name-only <execution-base> HEAD --`. Any file outside the plan's in-scope list fails review, full stop.
+   - Leftovers: `git -C <worktree> status --porcelain=v1 --untracked-files=all`. Any staged, unstaged, or untracked file outside scope also fails.
+3. **Read the full diff**: `git -C <worktree> diff <execution-base> HEAD` for the committed work, plus `git -C <worktree> diff` for any uncommitted leftovers. Judge it against "Why this matters" (does it solve the actual problem?) and the repo conventions named in the plan (does it look like the rest of the codebase?).
 4. **Audit the new tests.** Executors game criteria — a test that asserts nothing meaningful passes `pnpm test` and proves nothing. Read what the tests assert.
 
 ### Verdict
