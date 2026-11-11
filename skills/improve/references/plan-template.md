@@ -98,6 +98,7 @@ executor's environment. Skip the section otherwise.)
 (Filled from recon — match the repo's observed conventions.)
 
 - Branch: `advisor/NNN-<slug>` (or the repo's branch-naming convention if one is evident)
+- Before editing anything, record the execution base: `git rev-parse HEAD`. The reviewer diffs from it — scope is judged on `<execution-base>..HEAD` plus `git status`, so a commit must never hide a change.
 - Commit per step or per logical unit; message style: <match repo, e.g. conventional commits — include an example from `git log`>
 - Do NOT push or open a PR unless the operator instructed it.
 
@@ -132,7 +133,7 @@ Machine-checkable. ALL must hold:
 - [ ] `pnpm typecheck` exits 0
 - [ ] `pnpm test` exits 0; new tests for <X> exist and pass
 - [ ] `grep -rn "<old pattern>" src/` returns no matches
-- [ ] No files outside the in-scope list are modified (`git status`)
+- [ ] No files outside the in-scope list are modified (`git diff --name-only <execution-base> HEAD` plus `git status --porcelain=v1 --untracked-files=all`)
 - [ ] `plans/README.md` status row updated
 
 ## STOP conditions
