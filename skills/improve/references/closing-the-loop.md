@@ -28,7 +28,9 @@ The subagent prompt must contain:
 > moving on. Touch only the files listed as in scope. If any STOP condition
 > occurs, stop immediately and report. Do not improvise around obstacles.
 > Commit your work in the worktree following the plan's git workflow section.
-> One override: SKIP the plan's instruction to update `plans/README.md` —
+> Before editing anything, record your starting commit (`git rev-parse HEAD`)
+> — the reviewer diffs your work from it, so a commit must never hide a
+> change from review. One override: SKIP the plan's instruction to update `plans/README.md` —
 > your reviewer maintains the index. Before reporting, audit every claim in
 > your report against an actual tool result from this session — only report
 > what you can point to evidence for; if a verification failed or was
@@ -39,6 +41,7 @@ The subagent prompt must contain:
 
 ```
 STATUS: COMPLETE | STOPPED
+STARTED AT: <full SHA from `git rev-parse HEAD` before the first edit>
 STEPS: per step — done/skipped + verification command result
 STOPPED BECAUSE: (only if STOPPED) which STOP condition, what was observed
 FILES CHANGED: list
@@ -52,8 +55,8 @@ Note on fresh worktrees: they share git history but not `node_modules` or build 
 Review like a tech lead reviewing a PR against the spec — never fix anything yourself:
 
 1. **Re-run every done criterion** in the worktree. Don't trust the executor's report — verify.
-2. **Scope compliance**: `git -C <worktree> diff --stat` against the plan's in-scope list. Any file outside scope fails review, full stop.
-3. **Read the full diff.** Judge it against "Why this matters" (does it solve the actual problem?) and the repo conventions named in the plan (does it look like the rest of the codebase?).
+2. **Scope compliance** — from the executor's reported starting commit (`STARTED AT` in its report, call it `<base>`). First verify the base: `git -C <worktree> merge-base --is-ancestor <base> HEAD` must hold; if it doesn't, STOP — the worktree didn't start where the executor claims, so no diff from that base can be trusted; determine the real starting commit before reviewing. Then check both halves: (a) committed changes — `git -C <worktree> diff --name-only <base> HEAD` must list only in-scope files; (b) leftovers — `git -C <worktree> status --porcelain=v1 --untracked-files=all` must show nothing outside scope (staged, unstaged, or untracked). Any file outside scope in either half fails review, full stop. A bare `git diff` or `git status` alone is not the check: once the executor commits, the working tree is clean and the committed change is invisible to both.
+3. **Read the full diff** — `git -C <worktree> diff <base> HEAD`, the committed diff from the recorded base, not the working-tree diff (empty after the executor commits). Judge it against "Why this matters" (does it solve the actual problem?) and the repo conventions named in the plan (does it look like the rest of the codebase?).
 4. **Audit the new tests.** Executors game criteria — a test that asserts nothing meaningful passes `pnpm test` and proves nothing. Read what the tests assert.
 
 ### Verdict

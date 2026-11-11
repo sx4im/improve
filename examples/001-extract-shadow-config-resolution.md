@@ -154,7 +154,7 @@ Replace the block at ~36–55 with `resolveShadowConfig(options.cwd)` (no seed �
 - [ ] `pnpm check` exits 0
 - [ ] `grep -rn "TODO: We're duplicating logic for shadowConfig" packages/shadcn/src/` returns no matches (comment removed with the duplication)
 - [ ] Both `search.ts` and `view.ts` call `resolveShadowConfig`; neither contains an inline shadow-config block
-- [ ] No files outside the in-scope list are modified (`git status`)
+- [ ] No files outside the in-scope list are modified: `git diff --name-only <execution-base> HEAD` lists only in-scope files, and `git status` shows no staged, unstaged, or untracked leftovers outside scope (`<execution-base>` is the worktree's starting commit, recorded before the first edit — a bare `git diff` / `git status` misses committed changes)
 - [ ] `plans/README.md` status row updated
 
 ## STOP conditions
